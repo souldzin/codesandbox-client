@@ -14,6 +14,7 @@ var { createProxyMiddleware } = require('http-proxy-middleware');
 var path = require('path');
 var httpProxy = require('http-proxy');
 const { platform } = require('os');
+var commonConfig = require('../config/webpack.common');
 var config = require('../config/webpack.dev');
 var paths = require('../config/paths');
 const { staticAssets } = require('../config/build');
@@ -63,6 +64,27 @@ function clearConsole() {
   if (shouldClearConsole) {
     process.stdout.write('\x1bc');
   }
+}
+
+function getCompiltaionWarnings(multiStats) {
+  // filter known warnings:
+  // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
+  //   in ./node_modules/typescript/lib/typescript.js
+  // CriticalDependencyWarning: Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+  //   in ./packages/app/node_modules/babel-plugin-macros/dist/index.js
+  // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
+  //   in ./packages/app/node_modules/cosmiconfig/dist/loaders.js
+  // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
+  //   in ./packages/app/src/app/components/CodeEditor/CodeMirror/index.js
+  return []
+    .concat(
+      ...multiStats.stats.map(x =>
+        x.compilation.warnings.concat(
+          ...x.compilation.children.map(child => child.warnings)
+        )
+      )
+    )
+    .filter(warning => warning.error.name !== 'CriticalDependencyWarning');
 }
 
 function setupCompiler(port, protocol) {
@@ -116,18 +138,7 @@ function setupCompiler(port, protocol) {
       return;
     }
 
-    // filter known warnings:
-    // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
-    //   in ./node_modules/typescript/lib/typescript.js
-    // CriticalDependencyWarning: Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
-    //   in ./packages/app/node_modules/babel-plugin-macros/dist/index.js
-    // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
-    //   in ./packages/app/node_modules/cosmiconfig/dist/loaders.js
-    // CriticalDependencyWarning: Critical dependency: the request of a dependency is an expression
-    //   in ./packages/app/src/app/components/CodeEditor/CodeMirror/index.js
-    const warnings = stats.compilation.warnings
-      .concat(...stats.compilation.children.map(child => child.warnings))
-      .filter(warning => warning.error.name !== 'CriticalDependencyWarning');
+    const warnings = getCompiltaionWarnings(stats);
     const hasWarnings = warnings.length > 0;
     if (hasWarnings) {
       console.log(chalk.yellow(`Compiled with warnings in ${took / 1000}s.\n`));
@@ -267,7 +278,7 @@ function runDevServer(port, protocol, index) {
   var devServer = new WebpackDevServer(compiler, {
     // It is important to tell WebpackDevServer to use the same "root" path
     // as we specified in the config. In development, we always serve from /.
-    publicPath: config.output.publicPath,
+    publicPath: commonConfig.output.publicPath,
     // WebpackDevServer is noisy by default so we emit custom message instead
     // by listening to the compiler events with `compiler.hooks[...].tap` calls above.
     quiet: true,

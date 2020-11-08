@@ -3,12 +3,13 @@ const merge = require('webpack-merge');
 // const webpack = require('webpack');
 const WebpackBar = require('webpackbar');
 const commonConfig = require('./webpack.common');
+const setupEntries = require('./setup-entries');
 
 const devEntries = ['webpack-dev-server/client?/'];
 
 const APP_HOT = Boolean(process.env.APP_HOT);
 
-module.exports = merge(
+const config = merge(
   {
     entry: {
       app: APP_HOT
@@ -42,3 +43,5 @@ module.exports = merge(
     ],
   }
 );
+
+module.exports = setupEntries(config);
