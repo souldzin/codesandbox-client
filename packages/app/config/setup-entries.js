@@ -4,6 +4,7 @@ const path = require('path');
 const paths = require('./paths');
 
 module.exports = config => {
+  const isProd = config.mode === 'production';
   const shared = {
     plugins: [
       new AssetsPlugin({
@@ -29,8 +30,10 @@ module.exports = config => {
         },
         output: {
           ...config.output,
-          filename: '[name].[contenthash:9].js',
-          chunkFilename: '[name].[contenthash:9].chunk.js',
+          filename: isProd ? '[name].[contenthash:9].js' : '[name].[hash].js',
+          chunkFilename: isProd
+            ? '[name].[contenthash:9].chunk.js'
+            : '[name].[hash].chunk.js',
         },
       },
       shared

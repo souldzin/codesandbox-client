@@ -34,6 +34,8 @@ var shouldClearConsole =
 // This is a little hacky.
 // It would be easier if webpack provided a rich error object.
 var friendlySyntaxErrorLabel = 'Syntax error:';
+const canHaveWebsocket = !Boolean(JSON.parse(process.env.SANDPACK || 'false'));
+
 function isLikelyASyntaxError(message) {
   return message.indexOf(friendlySyntaxErrorLabel) !== -1;
 }
@@ -102,7 +104,7 @@ function setupCompiler(port, protocol) {
   // recompiling a bundle. WebpackDevServer takes care to pause serving the
   // bundle, so if you refresh, it'll wait instead of serving the old one.
   // "invalid" is short for "bundle invalidated", it doesn't imply any errors.
-  compiler.hooks.invalid.tap('invalid', function(module) {
+  compiler.hooks.invalid.tap('invalid', function (module) {
     clearConsole();
     compileStart = Date.now();
     console.log(`Module ${chalk.yellow(module)} updated, re-compiling...`);
@@ -196,7 +198,7 @@ function openBrowser(port, protocol) {
 }
 
 function addMiddleware(devServer, index) {
-  devServer.use(function(req, res, next) {
+  devServer.use(function (req, res, next) {
     if (req.url === '/') {
       req.url = '/homepage';
     }
@@ -296,8 +298,8 @@ function runDevServer(port, protocol, index) {
     contentBase: false,
     clientLogLevel: 'warning',
     overlay: true,
-    inline: true,
-    hot: true,
+    inline: canHaveWebsocket,
+    hot: canHaveWebsocket,
     liveReload: process.env['DISABLE_REFRESH'] ? false : true,
   });
 
@@ -333,7 +335,7 @@ function run(port) {
       console.error('Got an error', error);
     });
     http
-      .createServer(function(req, res) {
+      .createServer(function (req, res) {
         if (req.url.includes('.js')) {
           proxy.web(req, res, { target: 'http://localhost:3000' });
         } else {
