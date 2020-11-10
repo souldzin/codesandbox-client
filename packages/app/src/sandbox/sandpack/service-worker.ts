@@ -8,12 +8,6 @@ import {
 import { DeferredRequestsCollection } from './deferred-requests';
 import { createInactivityTrigger } from './inactivity-trigger';
 
-type DeferredRequest = {
-  request: Request;
-  resolve: (Response) => void;
-  reject: (Error) => void;
-};
-
 const HOST = `${location.protocol}//${location.host}`;
 const ASSETS_PATH = '/assets.json';
 
@@ -50,7 +44,7 @@ requestFlusher.start();
 
 const debug = (...args) => {
   // eslint-disable-next-line no-console
-  console.log(...args);
+  // console.log(...args);
 };
 
 const getPath = url => `/${url.replace(/^https?:\/\/[^/]+\/?/, '')}`;

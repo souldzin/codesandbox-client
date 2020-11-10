@@ -11,7 +11,7 @@ const ASSET_SANDPACK_SERVICE_WORKER = 'sandpack-service-worker';
 
 const debug = (...args) => {
   // eslint-disable-next-line no-console
-  console.log(...args);
+  // console.log(...args);
 };
 
 const postServiceWorkerMessage = data => {
@@ -34,9 +34,7 @@ const handleRequest = async ({ requestId, path }: SandpackRequestPayload) => {
     return;
   }
 
-  const isFile = await new Promise<boolean>(resolve =>
-    manager.isFile(path, resolve, resolve)
-  );
+  const isFile = await manager.fileResolver.isFile(path);
 
   debug('isFile ', isFile);
 
@@ -45,9 +43,7 @@ const handleRequest = async ({ requestId, path }: SandpackRequestPayload) => {
     return;
   }
 
-  const content = await new Promise<string>(resolve =>
-    manager.readFileSync(path, resolve)
-  );
+  const content = await manager.fileResolver.readFile(path);
 
   postServiceWorkerMessage(
     createResponseEvent({
